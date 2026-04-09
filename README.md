@@ -59,7 +59,7 @@ INTERNET / VPN ACCESS
 
 ---
 
-## NETWORK ASSIGNMENT (OpenStack)
+## NETWORK ASSIGNMENT 
 
 | Machine     | Hostname      | Network          | OpenStack Name  |
 |-------------|---------------|------------------|-----------------|
