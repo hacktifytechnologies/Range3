@@ -5,10 +5,10 @@
 
 ## COMPANY PROFILE
 
-**AETHON Defense Systems** is a fictional global defence technology corporation
+**AETHON Defense Systems** is a global defence technology corporation
 specialising in Future Infantry Soldier as a System (F-INSAS) platforms and
 Precision Guided Munitions (PGMs). The range simulates an enterprise network
-breach across AETHON's OpenStack-hosted infrastructure.
+breach across AETHON's infrastructure.
 
 ---
 
