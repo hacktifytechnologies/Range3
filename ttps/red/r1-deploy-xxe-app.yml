@@ -1,0 +1,65 @@
+- name: AETHON Setup M1 — Deploy XXE-Vulnerable PHP Procurement Portal
+  description: >
+    Range environment setup TTP for Machine 1 (aethon-web).
+    Installs Apache2 and PHP 8.1 on Ubuntu 22.04, deploys the AETHON Defense
+    Systems procurement portal with a PHP XML endpoint that uses LIBXML_NOENT
+    (entity expansion enabled), plants the internal.xml config file readable
+    by www-data, and drops flag1.txt. Run this on the aethon-web VM before
+    the range goes live. Idempotent — safe to re-run.
+  tactic: persistence
+  technique_id: T1505.003
+  technique_name: 'Server Software Component: Web Shell'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      echo "[*] M1 Environment Setup — aethon-web";
+      apt-get update -qq;
+      apt-get install -y apache2 php8.1 libapache2-mod-php8.1 php8.1-xml -qq;
+      a2enmod rewrite;
+      echo "[*] Copying webapp files from setup directory...";
+      cp -r /opt/aethon-setup/webapp/* /var/www/html/;
+      chown -R www-data:www-data /var/www/html/;
+      chmod 750 /var/www/html/config/;
+      chmod 640 /var/www/html/config/internal.xml;
+      echo "[*] Planting flag1...";
+      echo "AETHON{xxe_r34ds_4ll_s3cr3ts_v3nd0r}" > /etc/flag1.txt;
+      chmod 644 /etc/flag1.txt;
+      echo "[*] Configuring virtual host...";
+      cat > /etc/apache2/sites-available/aethon-portal.conf << 'VHEOF'
+      <VirtualHost *:80>
+        ServerName aethon-web
+        DocumentRoot /var/www/html
+        DirectoryIndex index.html
+        <Directory /var/www/html>
+          AllowOverride All
+          Require all granted
+        </Directory>
+        <Directory /var/www/html/config>
+          Require all denied
+        </Directory>
+      </VirtualHost>
+      VHEOF
+      a2dissite 000-default.conf 2>/dev/null || true;
+      a2ensite aethon-portal.conf;
+      systemctl enable apache2;
+      systemctl restart apache2;
+      echo "[+] M1 setup complete. Apache serving on port 80."
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 180
+    parsers: []
+    cleanup:
+    - systemctl stop apache2 || true
+    - apt-get remove -y apache2 php8.1 libapache2-mod-php8.1 php8.1-xml -qq || true
+    - rm -rf /var/www/html/api /var/www/html/config /var/www/html/procurement.html /etc/flag1.txt
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: 2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e

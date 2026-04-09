@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AETHON Internal Service Configuration — DO NOT EXPOSE -->
+<!-- Last updated: 2024-09-14 | Owner: devops@aethon-internal -->
+<aethon_internal_config>
+  <service name="document_management">
+    <description>Internal Document Management System — restricted to DMZ segment</description>
+    <host>aethon-docs</host>
+    <port>5000</port>
+    <protocol>http</protocol>
+    <auth>
+      <username>admin</username>
+      <!-- Temp password set by DevOps — change after go-live: AETHON-SEC-REQ-2024-187 -->
+      <password>Aethon@D0cs#2024</password>
+    </auth>
+    <note>Access from procurement server only. Do not share credentials.</note>
+  </service>
+  <service name="telemetry_cache">
+    <description>Redis-backed telemetry cache — internal only</description>
+    <host>aethon-cache</host>
+    <port>6379</port>
+  </service>
+  <internal_note>
+    All internal services are on the v-Priv-subnet. Contact NOC for issues.
+    Reminder: rotate all service credentials after pentest window closes (ref: AETHON-PT-2024-Q4).
+  </internal_note>
+</aethon_internal_config>

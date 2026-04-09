@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AETHON DMS — Secure Login</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --dark:#070d1a; --navy:#0d1b2e; --primary:#112240; --accent:#c9aa5c; --text:#ccd6f6; --muted:#8892b0; --border:#1e3357; }
+        body { font-family: 'Segoe UI',Arial,sans-serif; background: var(--dark); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-wrap { width: 100%; max-width: 420px; padding: 20px; }
+        .login-logo { text-align: center; margin-bottom: 32px; }
+        .login-logo .hex {
+            width: 64px; height: 64px; background: var(--accent);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 900; color: var(--dark); margin-bottom: 12px;
+        }
+        .login-logo h1 { font-size: 20px; font-weight: 800; letter-spacing: 4px; color: var(--accent); text-transform: uppercase; }
+        .login-logo p { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+        .login-card { background: var(--primary); border: 1px solid var(--border); padding: 36px; }
+        .login-card h2 { font-size: 14px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: var(--text); margin-bottom: 6px; }
+        .login-card .sub { font-size: 12px; color: var(--muted); margin-bottom: 28px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        input { width: 100%; background: var(--navy); border: 1px solid var(--border); color: var(--text); padding: 12px 14px; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        input:focus { border-color: var(--accent); }
+        .btn { background: var(--accent); color: var(--dark); width: 100%; padding: 14px; font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; border: none; cursor: pointer; transition: background 0.2s; }
+        .btn:hover { background: #dbb96e; }
+        .error { background: rgba(192,57,43,0.15); border: 1px solid #c0392b; color: #e74c3c; padding: 12px 14px; font-size: 13px; margin-bottom: 20px; }
+        .badge { background: rgba(201,170,92,0.1); border: 1px solid var(--accent); padding: 10px 14px; font-size: 11px; color: var(--muted); margin-top: 20px; letter-spacing: 1px; }
+        .badge strong { color: var(--accent); }
+    </style>
+</head>
+<body>
+<div class="login-wrap">
+    <div class="login-logo">
+        <div class="hex">A</div>
+        <h1>AETHON</h1>
+        <p>Internal Document Management System</p>
+    </div>
+    <div class="login-card">
+        <h2>Authorised Access Only</h2>
+        <p class="sub">Enter your AETHON internal credentials to access the document repository.</p>
+        {% if error %}
+        <div class="error">&#9888; {{ error }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Internal username" autocomplete="off" />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••••••" />
+            </div>
+            <button type="submit" class="btn">&#128274;&nbsp; Authenticate</button>
+        </form>
+        <div class="badge">
+            <strong>&#9650; RESTRICTED:</strong> This system is for AETHON personnel only. Unauthorised access is a violation of AETHON Security Policy and applicable law.
+        </div>
+    </div>
+</div>
+</body>
+</html>

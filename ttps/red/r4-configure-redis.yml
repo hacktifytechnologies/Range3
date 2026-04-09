@@ -1,0 +1,83 @@
+- name: AETHON Setup M4 — Configure Unauthenticated Redis with Writeable SSH Path
+  description: >
+    Range environment setup TTP for Machine 4 (aethon-cache).
+    Installs Redis on Ubuntu 22.04, configures it to bind on all interfaces
+    with protected-mode disabled and no requirepass, making it fully accessible
+    from the internal network. Creates cacheops user with a world-writeable .ssh
+    directory so Redis CONFIG SET can write authorized_keys. Seeds the flag and
+    AETHON telemetry keys. Makes /var/lib/redis world-writable for BGSAVE to work
+    when dir is changed via CONFIG SET.
+  tactic: defense-evasion
+  technique_id: T1562.001
+  technique_name: 'Impair Defenses: Disable or Modify Tools'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      echo "[*] M4 Environment Setup — aethon-cache";
+      apt-get update -qq;
+      apt-get install -y redis-server openssh-server -qq;
+      id -u cacheops &>/dev/null || useradd -m -s /bin/bash cacheops;
+      cat > /etc/redis/redis.conf << 'REDEOF'
+      bind 0.0.0.0
+      protected-mode no
+      port 6379
+      daemonize no
+      loglevel notice
+      logfile /var/log/redis/redis-server.log
+      dir /var/lib/redis
+      dbfilename dump.rdb
+      save 900 1
+      save 300 10
+      REDEOF
+      chown redis:redis /var/lib/redis;
+      chmod 777 /var/lib/redis;
+      mkdir -p /home/cacheops/.ssh;
+      chmod 777 /home/cacheops/.ssh;
+      chmod 777 /home/cacheops;
+      chown -R cacheops:cacheops /home/cacheops;
+      cat > /etc/systemd/system/redis-aethon.service << 'SVCEOF'
+      [Unit]
+      Description=AETHON Telemetry Cache (Redis)
+      After=network.target
+      [Service]
+      Type=simple
+      User=redis
+      ExecStart=/usr/bin/redis-server /etc/redis/redis.conf
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
+      SVCEOF
+      systemctl daemon-reload;
+      systemctl enable redis-aethon;
+      systemctl start redis-aethon;
+      sleep 2;
+      redis-cli -p 6379 SET "aethon:flag4" "AETHON{r3d1s_unauth_pr1v3sc_via_ssh}";
+      redis-cli -p 6379 SET "aethon:config:core_host" "aethon-core";
+      redis-cli -p 6379 SET "aethon:config:core_user" "opsadmin";
+      redis-cli -p 6379 HSET "aethon:hosts" "core" "aethon-core" "web" "aethon-web" "docs" "aethon-docs";
+      redis-cli -p 6379 SET "aethon:telemetry:finsas:units_active" "312";
+      echo "AETHON{r3d1s_unauth_pr1v3sc_via_ssh}" > /home/cacheops/flag4.txt;
+      chmod 644 /home/cacheops/flag4.txt;
+      chown cacheops:cacheops /home/cacheops/flag4.txt;
+      systemctl enable ssh; systemctl start ssh;
+      echo "[+] M4 setup complete. Redis on port 6379 (no auth)."
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 120
+    parsers: []
+    cleanup:
+    - systemctl stop redis-aethon || true
+    - systemctl disable redis-aethon || true
+    - apt-get remove -y redis-server -qq || true
+    - userdel -r cacheops || true
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: 5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c

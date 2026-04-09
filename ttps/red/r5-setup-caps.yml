@@ -1,0 +1,79 @@
+- name: AETHON Setup M5 — Assign cap_setuid Capability to Python3 Binary
+  description: >
+    Range environment setup TTP for Machine 5 (aethon-core).
+    Installs libcap2-bin on Ubuntu 22.04, creates opsadmin user, deploys the
+    ops-monitor service, then uses setcap to grant cap_setuid+ep to the python3
+    binary — simulating a real-world misconfiguration where a developer granted
+    broad capabilities to run monitoring scripts. Plants the final flag in
+    /root/flag5.txt (root-only). Creates a notice file as a breadcrumb hinting
+    that python3 capabilities were modified.
+  tactic: persistence
+  technique_id: T1548.001
+  technique_name: 'Abuse Elevation Control Mechanism: Setuid and Setgid'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      echo "[*] M5 Environment Setup — aethon-core";
+      apt-get update -qq;
+      apt-get install -y python3 openssh-server libcap2-bin -qq;
+      id -u opsadmin &>/dev/null || useradd -m -s /bin/bash opsadmin;
+      mkdir -p /home/opsadmin/.ssh;
+      chmod 700 /home/opsadmin/.ssh;
+      chown -R opsadmin:opsadmin /home/opsadmin/.ssh;
+      APP_DIR="/opt/aethon-core";
+      mkdir -p $APP_DIR;
+      cp /opt/aethon-setup/service/ops-monitor.py $APP_DIR/;
+      chown -R opsadmin:opsadmin $APP_DIR;
+      echo "AETHON{c4p4b1l1ty_4bus3_r00t_0wn3d_f1n4l}" > /root/flag5.txt;
+      chmod 400 /root/flag5.txt;
+      PYTHON3_PATH=$(which python3);
+      echo "[*] Setting cap_setuid on $PYTHON3_PATH ...";
+      setcap cap_setuid+ep $PYTHON3_PATH;
+      getcap $PYTHON3_PATH;
+      cat > /home/opsadmin/NOTICE.txt << 'NOTEEOF'
+      AETHON CORE OPERATIONS SERVER
+      ==============================
+      Note: Python3 upgraded for telemetry module compatibility.
+            Do not modify python3 capabilities without NOC approval.
+            See: AETHON-INFRA-CHANGE-2024-118
+      Sensitive data is stored under /root/. Access restricted to root only.
+      NOTEEOF
+      chown opsadmin:opsadmin /home/opsadmin/NOTICE.txt;
+      cat > /etc/systemd/system/aethon-core-monitor.service << 'SVCEOF'
+      [Unit]
+      Description=AETHON Core Operations Monitor
+      After=network.target
+      [Service]
+      Type=simple
+      User=opsadmin
+      WorkingDirectory=/opt/aethon-core
+      ExecStart=/usr/bin/python3 /opt/aethon-core/ops-monitor.py
+      Restart=always
+      [Install]
+      WantedBy=multi-user.target
+      SVCEOF
+      systemctl daemon-reload;
+      systemctl enable aethon-core-monitor;
+      systemctl start aethon-core-monitor;
+      systemctl enable ssh; systemctl start ssh;
+      echo "[+] M5 setup complete. cap_setuid on $(which python3)"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 120
+    parsers: []
+    cleanup:
+    - PYTHON3_PATH=$(which python3); setcap -r $PYTHON3_PATH || true
+    - systemctl stop aethon-core-monitor || true
+    - rm -f /root/flag5.txt
+    - userdel -r opsadmin || true
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: 9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d

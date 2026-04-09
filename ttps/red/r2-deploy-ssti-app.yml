@@ -1,0 +1,73 @@
+- name: AETHON Setup M2 — Deploy SSTI-Vulnerable Flask Document Management System
+  description: >
+    Range environment setup TTP for Machine 2 (aethon-docs).
+    Installs Python 3 and Flask on Ubuntu 22.04, deploys the AETHON internal
+    Document Management System with a Jinja2 SSTI sink in the /search endpoint
+    (render_template_string with unsanitised user input). Creates docuser,
+    plants flag2.txt and the SSH pivot key for aethon-dev, then starts the
+    service on port 5000 via systemd. Run before range goes live.
+  tactic: persistence
+  technique_id: T1505.003
+  technique_name: 'Server Software Component: Web Shell'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      echo "[*] M2 Environment Setup — aethon-docs";
+      apt-get update -qq;
+      apt-get install -y python3 python3-pip python3-venv openssh-server -qq;
+      id -u docuser &>/dev/null || useradd -m -s /bin/bash docuser;
+      APP_DIR="/opt/aethon-dms";
+      mkdir -p $APP_DIR;
+      cp -r /opt/aethon-setup/webapp/* $APP_DIR/;
+      chown -R docuser:docuser $APP_DIR;
+      python3 -m venv $APP_DIR/venv;
+      $APP_DIR/venv/bin/pip install -q flask==2.3.3 Werkzeug==2.3.7 Jinja2==3.1.2;
+      echo "AETHON{jinja2_t3mpl4t3_t4k30v3r}" > /home/docuser/flag2.txt;
+      chmod 640 /home/docuser/flag2.txt;
+      chown docuser:docuser /home/docuser/flag2.txt;
+      mkdir -p /home/docuser/.ssh;
+      chmod 700 /home/docuser/.ssh;
+      chown -R docuser:docuser /home/docuser/.ssh;
+      echo "[*] Writing SSH pivot key to docuser home...";
+      cp /opt/aethon-setup/keys/id_rsa_dev /home/docuser/.ssh/id_rsa_dev;
+      chmod 600 /home/docuser/.ssh/id_rsa_dev;
+      chown docuser:docuser /home/docuser/.ssh/id_rsa_dev;
+      cat > /etc/systemd/system/aethon-dms.service << 'SVCEOF'
+      [Unit]
+      Description=AETHON Internal Document Management System
+      After=network.target
+      [Service]
+      Type=simple
+      User=docuser
+      WorkingDirectory=/opt/aethon-dms
+      ExecStart=/opt/aethon-dms/venv/bin/python3 app.py
+      Restart=always
+      RestartSec=5
+      [Install]
+      WantedBy=multi-user.target
+      SVCEOF
+      systemctl daemon-reload;
+      systemctl enable aethon-dms;
+      systemctl start aethon-dms;
+      systemctl enable ssh; systemctl start ssh;
+      echo "[+] M2 setup complete. DMS on port 5000."
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 180
+    parsers: []
+    cleanup:
+    - systemctl stop aethon-dms || true
+    - systemctl disable aethon-dms || true
+    - rm -rf /opt/aethon-dms /home/docuser/flag2.txt /home/docuser/.ssh/id_rsa_dev
+    - userdel -r docuser || true
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: 6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f

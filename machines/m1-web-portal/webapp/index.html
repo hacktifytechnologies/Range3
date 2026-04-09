@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETHON Defense Systems | F-INSAS & Precision Guided Munitions</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --dark: #070d1a;
+            --navy: #0d1b2e;
+            --primary: #112240;
+            --accent: #c9aa5c;
+            --accent2: #e8c96a;
+            --text: #ccd6f6;
+            --muted: #8892b0;
+            --highlight: #1e3a5f;
+            --border: #1e3357;
+            --red: #c0392b;
+        }
+        body {
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+            background: var(--dark);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        /* NAV */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 999;
+            background: rgba(7,13,26,0.97);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 70px;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 14px; }
+        .nav-logo {
+            width: 44px; height: 44px;
+            background: var(--accent);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; color: var(--dark); font-size: 18px;
+        }
+        .nav-brand-text { display: flex; flex-direction: column; }
+        .nav-brand-text span:first-child {
+            font-size: 18px; font-weight: 800; letter-spacing: 3px;
+            color: var(--accent); text-transform: uppercase;
+        }
+        .nav-brand-text span:last-child {
+            font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase;
+        }
+        .nav-links { display: flex; gap: 32px; list-style: none; }
+        .nav-links a {
+            color: var(--muted); text-decoration: none;
+            font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-cta {
+            background: transparent; border: 1px solid var(--accent);
+            color: var(--accent); padding: 8px 22px; font-size: 12px;
+            letter-spacing: 1.5px; text-transform: uppercase; cursor: pointer;
+            transition: all 0.2s; text-decoration: none;
+        }
+        .nav-cta:hover { background: var(--accent); color: var(--dark); }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh;
+            background:
+                linear-gradient(to bottom, rgba(7,13,26,0.7) 0%, rgba(7,13,26,0.85) 60%, rgba(7,13,26,1) 100%),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(30,58,95,0.08) 2px, rgba(30,58,95,0.08) 4px),
+                linear-gradient(135deg, #0a1628 0%, #071020 50%, #0d1b2e 100%);
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 100px 40px 60px;
+            position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse 80% 50% at 50% 30%, rgba(201,170,92,0.06) 0%, transparent 70%);
+        }
+        .hero-badge {
+            display: inline-block; border: 1px solid var(--accent);
+            padding: 6px 20px; font-size: 11px; letter-spacing: 3px;
+            text-transform: uppercase; color: var(--accent); margin-bottom: 28px;
+        }
+        .hero h1 {
+            font-size: clamp(36px, 6vw, 72px);
+            font-weight: 900; letter-spacing: 4px; text-transform: uppercase;
+            color: #fff; line-height: 1.1; margin-bottom: 10px;
+        }
+        .hero h1 span { color: var(--accent); }
+        .hero-sub {
+            font-size: clamp(14px, 2vw, 18px); color: var(--muted);
+            max-width: 680px; margin: 0 auto 40px; letter-spacing: 1px;
+        }
+        .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+        .btn-primary {
+            background: var(--accent); color: var(--dark);
+            padding: 14px 36px; font-size: 13px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase;
+            text-decoration: none; transition: all 0.2s; border: none; cursor: pointer;
+        }
+        .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+        .btn-outline {
+            background: transparent; color: var(--text);
+            border: 1px solid var(--border); padding: 14px 36px;
+            font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+            text-decoration: none; transition: all 0.2s;
+        }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .hero-stats {
+            margin-top: 70px; display: flex; gap: 60px; justify-content: center;
+            flex-wrap: wrap;
+        }
+        .hero-stat { text-align: center; }
+        .hero-stat-num {
+            font-size: 36px; font-weight: 900; color: var(--accent);
+            letter-spacing: 2px;
+        }
+        .hero-stat-lbl {
+            font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--muted); margin-top: 4px;
+        }
+        /* TICKER */
+        .ticker {
+            background: var(--accent); color: var(--dark);
+            padding: 10px 0; overflow: hidden; white-space: nowrap;
+        }
+        .ticker-inner {
+            display: inline-block; animation: ticker 30s linear infinite;
+            font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+        }
+        @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+        /* SECTIONS */
+        section { padding: 90px 60px; }
+        .section-label {
+            font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: clamp(26px, 4vw, 42px); font-weight: 800;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: #fff; margin-bottom: 16px;
+        }
+        .section-title span { color: var(--accent); }
+        .section-desc { color: var(--muted); max-width: 640px; font-size: 15px; margin-bottom: 50px; }
+        .divider {
+            width: 60px; height: 3px;
+            background: linear-gradient(to right, var(--accent), transparent);
+            margin-bottom: 24px;
+        }
+
+        /* PRODUCTS */
+        #products { background: var(--navy); }
+        .products-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px; max-width: 1200px; margin: 0 auto;
+        }
+        .product-card {
+            background: var(--primary); border: 1px solid var(--border);
+            padding: 36px 30px; position: relative; overflow: hidden;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .product-card:hover { transform: translateY(-6px); border-color: var(--accent); }
+        .product-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 4px; height: 100%; background: var(--accent);
+        }
+        .product-icon {
+            width: 56px; height: 56px; background: rgba(201,170,92,0.1);
+            border: 1px solid var(--accent); display: flex;
+            align-items: center; justify-content: center;
+            font-size: 26px; margin-bottom: 22px;
+        }
+        .product-tag {
+            font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 10px;
+        }
+        .product-card h3 {
+            font-size: 20px; font-weight: 700; color: #fff;
+            letter-spacing: 1px; margin-bottom: 14px;
+        }
+        .product-card p { color: var(--muted); font-size: 14px; line-height: 1.7; }
+        .product-specs {
+            margin-top: 20px; padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+        .spec-item {
+            display: flex; justify-content: space-between;
+            font-size: 12px; color: var(--muted); margin-bottom: 6px;
+        }
+        .spec-item span:last-child { color: var(--text); }
+
+        /* ABOUT */
+        #about { background: var(--dark); }
+        .about-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 60px; max-width: 1100px; margin: 0 auto; align-items: center;
+        }
+        .about-visual {
+            position: relative; height: 400px;
+            background: var(--primary); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .about-visual-inner {
+            width: 220px; height: 220px;
+            border: 2px solid var(--accent);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(201,170,92,0.05);
+        }
+        .about-visual-inner span {
+            font-size: 72px; font-weight: 900; color: var(--accent); letter-spacing: 2px;
+        }
+        .cert-badges {
+            display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap;
+        }
+        .cert-badge {
+            background: var(--highlight); border: 1px solid var(--border);
+            padding: 6px 14px; font-size: 10px; letter-spacing: 2px;
+            text-transform: uppercase; color: var(--muted);
+        }
+
+        /* PROCUREMENT PORTAL HIGHLIGHT */
+        #portal-cta {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--highlight) 100%);
+            border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+            text-align: center; padding: 70px 40px;
+        }
+        #portal-cta h2 {
+            font-size: 32px; font-weight: 800; letter-spacing: 3px;
+            text-transform: uppercase; color: #fff; margin-bottom: 14px;
+        }
+        #portal-cta p { color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+
+        /* CLIENTS */
+        #clients { background: var(--navy); }
+        .clients-strip {
+            display: flex; gap: 40px; flex-wrap: wrap;
+            justify-content: center; align-items: center; max-width: 1000px; margin: 0 auto;
+        }
+        .client-logo {
+            background: var(--primary); border: 1px solid var(--border);
+            padding: 18px 32px; font-size: 13px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase; color: var(--muted);
+        }
+
+        /* FOOTER */
+        footer {
+            background: #040a14; border-top: 1px solid var(--border);
+            padding: 50px 60px 30px;
+        }
+        .footer-grid {
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px; max-width: 1200px; margin: 0 auto 40px;
+        }
+        .footer-brand span:first-child {
+            font-size: 22px; font-weight: 900; letter-spacing: 4px;
+            color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 8px;
+        }
+        .footer-brand p { color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 280px; }
+        .footer-col h4 {
+            font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--accent); margin-bottom: 16px;
+        }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 10px; }
+        .footer-col ul li a {
+            color: var(--muted); text-decoration: none; font-size: 13px;
+            transition: color 0.2s;
+        }
+        .footer-col ul li a:hover { color: var(--text); }
+        .footer-bottom {
+            border-top: 1px solid var(--border); padding-top: 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            max-width: 1200px; margin: 0 auto;
+        }
+        .footer-bottom p { color: var(--muted); font-size: 12px; letter-spacing: 1px; }
+        .clearance-badge {
+            background: var(--red); color: #fff; padding: 4px 12px;
+            font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            section { padding: 60px 24px; }
+            .about-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+    <div class="nav-brand">
+        <div class="nav-logo">A</div>
+        <div class="nav-brand-text">
+            <span>AETHON</span>
+            <span>Defense Systems · Est. 2009</span>
+        </div>
+    </div>
+    <ul class="nav-links">
+        <li><a href="#products">Products</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#clients">Partners</a></li>
+        <li><a href="procurement.html">Procurement</a></li>
+    </ul>
+    <a href="procurement.html" class="nav-cta">Vendor Portal</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div style="position:relative; z-index:1;">
+        <div class="hero-badge">&#9650; Classified Category: Defense Technology Group A</div>
+        <h1>AETHON<br><span>DEFENSE</span><br>SYSTEMS</h1>
+        <p class="hero-sub">Engineering supremacy across the battlespace — from the Future Infantry Soldier as a System (F-INSAS) to next-generation Precision Guided Munitions (PGMs) deployed across 38 nations.</p>
+        <div class="hero-btns">
+            <a href="#products" class="btn-primary">Explore Capabilities</a>
+            <a href="procurement.html" class="btn-outline">Procurement Portal</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-num">38+</div>
+                <div class="hero-stat-lbl">Nations Equipped</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">$4.7B</div>
+                <div class="hero-stat-lbl">Annual Revenue</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">12K+</div>
+                <div class="hero-stat-lbl">Systems Deployed</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-num">ISO 9001</div>
+                <div class="hero-stat-lbl">Certified</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+    <div class="ticker-inner">
+        &nbsp;&nbsp;◆ F-INSAS NEXT-GEN SOLDIER SYSTEM · ACTIVE DEPLOYMENT IN 12 THEATRES &nbsp;&nbsp;◆&nbsp;&nbsp; AETHON PGM-7 PRECISION STRIKE PACKAGE · NEW CONTRACT AWARDED &nbsp;&nbsp;◆&nbsp;&nbsp; BATTLE MANAGEMENT AI INTEGRATION · Q2 ROLLOUT &nbsp;&nbsp;◆&nbsp;&nbsp; SECURE PROCUREMENT PORTAL NOW LIVE FOR AUTHORISED VENDORS &nbsp;&nbsp;◆&nbsp;&nbsp; F-INSAS NEXT-GEN SOLDIER SYSTEM · ACTIVE DEPLOYMENT IN 12 THEATRES &nbsp;&nbsp;◆&nbsp;&nbsp; AETHON PGM-7 PRECISION STRIKE PACKAGE · NEW CONTRACT AWARDED &nbsp;&nbsp;◆&nbsp;&nbsp; BATTLE MANAGEMENT AI INTEGRATION · Q2 ROLLOUT &nbsp;&nbsp;◆&nbsp;&nbsp; SECURE PROCUREMENT PORTAL NOW LIVE FOR AUTHORISED VENDORS &nbsp;&nbsp;◆&nbsp;&nbsp;
+    </div>
+</div>
+
+<!-- PRODUCTS -->
+<section id="products">
+    <div style="max-width:1200px; margin:0 auto;">
+        <p class="section-label">&#9650; Core Capabilities</p>
+        <h2 class="section-title">AETHON <span>PRODUCT</span> DIVISIONS</h2>
+        <div class="divider"></div>
+        <p class="section-desc">Three vertically integrated divisions delivering end-to-end solutions from individual-soldier augmentation to theatre-level precision strike capabilities.</p>
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-icon">&#9876;</div>
+                <div class="product-tag">Division I</div>
+                <h3>F-INSAS Soldier Systems</h3>
+                <p>The AETHON F-INSAS platform integrates advanced body armour, C4I subsystems, exoskeletal load-bearing frames and biometric monitoring into a unified soldier architecture enabling enhanced lethality, situational awareness and survivability.</p>
+                <div class="product-specs">
+                    <div class="spec-item"><span>Network Protocol</span><span>AES-256 Encrypted Mesh</span></div>
+                    <div class="spec-item"><span>Payload Capacity</span><span>+40kg Exo-assisted</span></div>
+                    <div class="spec-item"><span>Battery Life</span><span>72hr operational</span></div>
+                    <div class="spec-item"><span>Classification</span><span>RESTRICTED</span></div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-icon">&#128248;</div>
+                <div class="product-tag">Division II</div>
+                <h3>Precision Guided Munitions</h3>
+                <p>AETHON's PGM-Series spans man-portable anti-armour rounds to long-range GPS/INS glide munitions. Our proprietary STRIKEPATH™ terminal guidance algorithm delivers sub-metre CEP across all weather and ECM environments.</p>
+                <div class="product-specs">
+                    <div class="spec-item"><span>CEP Accuracy</span><span>&lt; 0.8m (GPS-denied)</span></div>
+                    <div class="spec-item"><span>Range</span><span>12km – 350km</span></div>
+                    <div class="spec-item"><span>Guidance</span><span>GPS / INS / IIR</span></div>
+                    <div class="spec-item"><span>Classification</span><span>SECRET</span></div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-icon">&#128225;</div>
+                <div class="product-tag">Division III</div>
+                <h3>Battle Management Systems</h3>
+                <p>AETHON BMS-X integrates real-time ISR fusion, AI-driven COA generation and secure inter-unit communications into a ruggedised command platform. Interoperable with NATO STANAG 4586 and indigenous C2 architectures.</p>
+                <div class="product-specs">
+                    <div class="spec-item"><span>Latency</span><span>&lt; 80ms (Satellite Uplink)</span></div>
+                    <div class="spec-item"><span>User Nodes</span><span>Up to 8,000 simultaneous</span></div>
+                    <div class="spec-item"><span>Encryption</span><span>Type-1 NSA Suite B</span></div>
+                    <div class="spec-item"><span>Classification</span><span>TOP SECRET</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+    <div class="about-grid">
+        <div>
+            <p class="section-label">&#9650; Who We Are</p>
+            <h2 class="section-title">FORGING THE FUTURE<br>OF <span>BATTLEFIELD</span><br>DOMINANCE</h2>
+            <div class="divider"></div>
+            <p style="color:var(--muted); font-size:15px; line-height:1.8; margin-bottom:20px;">
+                Founded in 2009, AETHON Defense Systems has grown from a boutique systems integrator to one of the most trusted names in advanced defence technology. Our engineering teams operate across R&D campuses in Bengaluru, Toulouse, and Virginia.
+            </p>
+            <p style="color:var(--muted); font-size:15px; line-height:1.8; margin-bottom:28px;">
+                AETHON holds active supply agreements with defence ministries across South Asia, the Middle East, and Eastern Europe — with procurement handled exclusively through our secure Vendor Portal to maintain supply-chain integrity.
+            </p>
+            <div class="cert-badges">
+                <span class="cert-badge">NATO STANAG Certified</span>
+                <span class="cert-badge">ISO 9001:2015</span>
+                <span class="cert-badge">ITAR Compliant</span>
+                <span class="cert-badge">CMMC Level 3</span>
+            </div>
+        </div>
+        <div class="about-visual">
+            <div class="about-visual-inner">
+                <span>ADS</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PORTAL CTA -->
+<section id="portal-cta">
+    <p class="section-label" style="color:var(--accent);">&#9650; Vendor Access</p>
+    <h2>AUTHORISED PROCUREMENT PORTAL</h2>
+    <p>Registered vendors and government procurement officers can submit component requests, bid proposals, and supply chain documentation through our secure XML-based procurement platform. Valid vendor credentials required.</p>
+    <a href="procurement.html" class="btn-primary">Access Procurement Portal</a>
+</section>
+
+<!-- CLIENTS -->
+<section id="clients">
+    <div style="max-width:1100px; margin:0 auto; text-align:center;">
+        <p class="section-label">&#9650; Global Partners</p>
+        <h2 class="section-title">TRUSTED BY <span>GOVERNMENTS</span> WORLDWIDE</h2>
+        <div class="divider" style="margin:0 auto 40px;"></div>
+        <div class="clients-strip">
+            <div class="client-logo">MoD UK</div>
+            <div class="client-logo">DRDO</div>
+            <div class="client-logo">DARPA</div>
+            <div class="client-logo">NATO SC</div>
+            <div class="client-logo">SingArmy</div>
+            <div class="client-logo">ISDEF</div>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <span>AETHON</span>
+            <p>AETHON Defense Systems — engineering battlefield dominance through innovation in F-INSAS platforms, precision munitions and integrated battle management.</p>
+        </div>
+        <div class="footer-col">
+            <h4>Products</h4>
+            <ul>
+                <li><a href="#">F-INSAS Systems</a></li>
+                <li><a href="#">PGM Series</a></li>
+                <li><a href="#">BMS-X Platform</a></li>
+                <li><a href="#">EOD Solutions</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Company</h4>
+            <ul>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Leadership</a></li>
+                <li><a href="#">Careers</a></li>
+                <li><a href="#">Press</a></li>
+            </ul>
+        </div>
+        <div class="footer-col">
+            <h4>Procurement</h4>
+            <ul>
+                <li><a href="procurement.html">Vendor Portal</a></li>
+                <li><a href="#">RFQ Submission</a></li>
+                <li><a href="#">Contract Awards</a></li>
+                <li><a href="#">Compliance</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <p>&copy; 2024 AETHON Defense Systems. All rights reserved. | ITAR/EAR Controlled.</p>
+        <span class="clearance-badge">Restricted</span>
+    </div>
+</footer>
+
+</body>
+</html>

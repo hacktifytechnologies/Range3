@@ -1,0 +1,72 @@
+- name: AETHON Setup M3 — Deploy Pickle Deserialization Vulnerable API
+  description: >
+    Range environment setup TTP for Machine 3 (aethon-dev).
+    Installs Python 3 and Flask on Ubuntu 22.04, creates the devops user with
+    SSH key-based access, deploys the AETHON R&D Field Analyst API that
+    deserialises base64-encoded pickle objects without validation on the
+    /api/load-profile endpoint. Plants config.ini containing the Redis host
+    details and API keys. Drops flag3.txt. Starts service on port 8080.
+  tactic: persistence
+  technique_id: T1505.003
+  technique_name: 'Server Software Component: Web Shell'
+  singleton: true
+  repeatable: false
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      echo "[*] M3 Environment Setup — aethon-dev";
+      apt-get update -qq;
+      apt-get install -y python3 python3-pip python3-venv openssh-server -qq;
+      id -u devops &>/dev/null || useradd -m -s /bin/bash devops;
+      mkdir -p /home/devops/.ssh;
+      chmod 700 /home/devops/.ssh;
+      cp /opt/aethon-setup/keys/id_rsa_dev.pub /home/devops/.ssh/authorized_keys;
+      chmod 600 /home/devops/.ssh/authorized_keys;
+      chown -R devops:devops /home/devops/.ssh;
+      APP_DIR="/opt/aethon-api";
+      mkdir -p $APP_DIR;
+      cp /opt/aethon-setup/service/api.py $APP_DIR/;
+      cp /opt/aethon-setup/service/config.ini $APP_DIR/;
+      chown -R devops:devops $APP_DIR;
+      python3 -m venv $APP_DIR/venv;
+      $APP_DIR/venv/bin/pip install -q flask==2.3.3 Werkzeug==2.3.7;
+      echo "AETHON{p1ckl3_d3s3r14l1z4t10n_rce}" > $APP_DIR/flag3.txt;
+      chmod 640 $APP_DIR/flag3.txt;
+      chown devops:devops $APP_DIR/flag3.txt;
+      cat > /etc/systemd/system/aethon-api.service << 'SVCEOF'
+      [Unit]
+      Description=AETHON R&D Field Analyst API
+      After=network.target
+      [Service]
+      Type=simple
+      User=devops
+      WorkingDirectory=/opt/aethon-api
+      ExecStart=/opt/aethon-api/venv/bin/python3 api.py
+      Restart=always
+      RestartSec=5
+      [Install]
+      WantedBy=multi-user.target
+      SVCEOF
+      systemctl daemon-reload;
+      systemctl enable aethon-api;
+      systemctl start aethon-api;
+      systemctl enable ssh; systemctl start ssh;
+      echo "[+] M3 setup complete. API on port 8080."
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 180
+    parsers: []
+    cleanup:
+    - systemctl stop aethon-api || true
+    - systemctl disable aethon-api || true
+    - rm -rf /opt/aethon-api
+    - userdel -r devops || true
+    variations: []
+    additional_info: {}
+  requirements: []
+  id: 0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a

